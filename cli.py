@@ -1,6 +1,6 @@
 import argparse
 from pathlib import Path
-from .runtime import run
+from runtime import run
 
 def main():
     ap=argparse.ArgumentParser(prog="thanvi", description="Thanvi Programming Language")
