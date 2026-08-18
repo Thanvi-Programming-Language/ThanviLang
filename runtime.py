@@ -1,4 +1,5 @@
 from parser import *
+from api.voice import speak, process_voice_command
 
 class ReturnSignal(Exception):
     def __init__(self, value): self.value=value
@@ -55,3 +56,15 @@ class Interpreter:
 
 def run(source):
     p=parse(source); i=Interpreter(); i.exec_program(p); return i.env
+
+
+def run_voice(command):
+    """
+    Run a ThanviLang command received through voice.
+    """
+    command = process_voice_command(command)
+
+    if not command:
+        return None
+
+    return run(command)
