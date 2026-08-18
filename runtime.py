@@ -1,4 +1,4 @@
-from .parser import *
+from parser import *
 
 class ReturnSignal(Exception):
     def __init__(self, value): self.value=value
