@@ -1,5 +1,5 @@
-from thanvi.parser import parse
-from thanvi.runtime import run
+from parser import parse
+from runtime import run
 
 def test_parser():
     assert len(parse("let x = 1;").statements) == 1
