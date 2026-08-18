@@ -1,5 +1,3 @@
 let name = "thanvi";
 let age = 20;
-
-# output name
-# output age
+EOF
