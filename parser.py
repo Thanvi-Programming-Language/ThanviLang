@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from .lexer import tokenize
+from lexer import tokenize
 
 @dataclass
 class Program: statements: list
