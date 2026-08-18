@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Thanvi Playground</title>
+</head>
+<body>
+    <h1>Thanvi Programming Language</h1>
+
+    <textarea id="code" rows="12" cols="60">print "Hello, Thanvi!";</textarea>
+
+    <br><br>
+
+    <button onclick="runThanvi()">Run</button>
+
+    <pre id="output"></pre>
+
+    <script>
+        async function runThanvi() {
+            const code = document.getElementById("code").value;
+
+            const response = await fetch("/api", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ code })
+            });
+
+            document.getElementById("output").textContent =
+                await response.text();
+        }
+    </script>
+</body>
+</html>
