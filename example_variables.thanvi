@@ -1,0 +1,8 @@
+# Thanvi Variables Example
+# Variables are created using 'let'.
+
+let name = "Thanvi";
+let age = 20;
+let language = "Thanvi";
+let version = 1;
+let project = "Thanvi Programming Language";
