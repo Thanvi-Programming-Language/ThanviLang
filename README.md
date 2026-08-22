@@ -2,28 +2,41 @@
 
 Thanvi is an independent programming-language project created by **Meeravali Velupuri**.
 
-## v0.1.0
+## v0.2.0
 
-This repository is a complete **reference implementation** created from scratch for the initial Thanvi release. It includes a lexer, parser, AST, interpreter, CLI, tests, examples, documentation, and GitHub project files.
+This release introduces a new readable Thanvi syntax. The implementation remains Python-based, but users write programs in Thanvi's own syntax.
 
-### Implemented in this release
+### Core syntax
 
-- Variables with `let`
-- Numbers, strings, and booleans
-- Arithmetic and comparison operators
-- `if` / `else`
-- `while`
-- Functions and `return`
-- Command-line execution
-- Basic error handling
+- `set` for variables
+- `show` for output
+- `check` / `otherwise` / `end` for conditions
+- `repeat` / `end` for loops
+- `define` / `give` / `end` for functions
+- `finish` for program termination
+- Numbers, strings, booleans, arithmetic and comparison operators
+
+### Example
+
+```thanvi
+set name = "Meeravali"
+set age = 20
+
+check age >= 18 =>
+    show "Welcome, " + name
+otherwise =>
+    show "Access denied"
+end
+
+finish
+```
 
 ## Run
 
 Python 3.10+ is recommended.
 
 ```bash
-python -m pip install -r requirements.txt
-python -m thanvi.cli examples/hello.tvl
+python cli.py example.thanvi
 ```
 
 ## Tests
@@ -34,7 +47,7 @@ pytest -q
 
 ## Project
 
-GitHub organization: Thanvi  
+GitHub organization: Thanvi
 Repository: ThanviLang
 
 ## License
