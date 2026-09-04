@@ -1,0 +1,9 @@
+set items = ["Thanvi", "TPL", 40]
+show items[0]
+show len(items)
+check len(items) >= 3 and items[2] == 40 =>
+    show "Data check passed"
+otherwise =>
+    show "Data check failed"
+end
+finish

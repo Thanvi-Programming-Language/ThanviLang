@@ -1,0 +1,15 @@
+website "Thanvi 0.4.0"
+page "Home" =>
+    heading "Welcome to Thanvi"
+    text "This website is generated with TPL Web 0.4.0."
+    section "Features" =>
+        text "Readable syntax"
+        text "Arrays and functions"
+        text "Standalone HTML"
+    end
+    button "Get Started" =>
+        show "Welcome to TPL Web!"
+    end
+    link "Thanvi GitHub" to "https://github.com/Thanvi-Programming-Language/ThanviLang"
+end
+finish

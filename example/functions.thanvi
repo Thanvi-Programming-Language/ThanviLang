@@ -1,0 +1,9 @@
+define factorial(n) =>
+    check n <= 1 =>
+        give 1
+    otherwise =>
+        give n * factorial(n - 1)
+    end
+end
+show factorial(6)
+finish
