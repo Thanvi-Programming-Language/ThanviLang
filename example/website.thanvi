@@ -1,0 +1,24 @@
+website "Thanvi"
+
+page "Home" =>
+    heading "Welcome to Thanvi Programming Language"
+    text "Ee website TPL tho create chesam."
+
+    button "Get Started" =>
+        show "Welcome to TPL Web!"
+    end
+
+    link "Thanvi GitHub" to "https://github.com/Thanvi-Programming-Language/ThanviLang"
+end
+
+page "About" =>
+    heading "About Thanvi"
+    text "Thanvi is an independent programming language."
+    section "Features" =>
+        text "Readable syntax"
+        text "Functions and loops"
+        text "TPL Web compiler"
+    end
+end
+
+finish
