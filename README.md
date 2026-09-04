@@ -1,57 +1,48 @@
-# Thanvi Programming Language
+# Thanvi Programming Language v0.4.0
 
-Thanvi is an independent programming-language project created by **Meeravali Velupuri**.
+Advanced Web + Data Edition.
 
-## v0.2.0
+Creator: Meeravali Velupuri
 
-This release introduces a new readable Thanvi syntax. The implementation remains Python-based, but users write programs in Thanvi's own syntax.
+## Highlights
+- Variables, output, conditions, loops and functions
+- Arrays and indexing
+- `and`, `or`, `not`
+- Built-ins: `len`, `str`, `num`, `type`, `abs`, `round`, `min`, `max`
+- Comments with `#` or `//`
+- Line-aware runtime errors
+- Loop safety limit
+- TPL Web compiler
+- Standalone HTML output
+- Browser playground
 
-### Core syntax
+## Run
+```bash
+python cli.py examples/hello.thanvi
+python cli.py examples/data.thanvi
+python cli.py examples/web.thanvi --web -o website.html
+```
 
-- `set` for variables
-- `show` for output
-- `check` / `otherwise` / `end` for conditions
-- `repeat` / `end` for loops
-- `define` / `give` / `end` for functions
-- `finish` for program termination
-- Numbers, strings, booleans, arithmetic and comparison operators
-
-### Example
-
+## TPL Web
 ```thanvi
-set name = "Meeravali"
-set age = 20
+website "Thanvi 0.4.0"
 
-check age >= 18 =>
-    show "Welcome, " + name
-otherwise =>
-    show "Access denied"
+page "Home" =>
+    heading "Welcome to Thanvi"
+    text "This website is generated with TPL Web."
+
+    section "Features" =>
+        text "Readable syntax"
+        text "Arrays and functions"
+        text "Standalone HTML"
+    end
+
+    button "Start" =>
+        show "Welcome!"
+    end
 end
 
 finish
 ```
 
-## Run
-
-Python 3.10+ is recommended.
-
-```bash
-python cli.py example.thanvi
-```
-
-## Tests
-
-```bash
-pytest -q
-```
-
-## Project
-
-GitHub organization: Thanvi
-Repository: ThanviLang
-
-## License
-
-MIT License
-
-Copyright (c) 2026 Meeravali Velupuri
+This is a development release. Test it before treating it as an official production compiler.

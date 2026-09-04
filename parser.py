@@ -1,233 +1,127 @@
 from dataclasses import dataclass
-from lexer import tokenize
-
+from lexer import lex
 @dataclass
-class Program: statements: list
+class Program: body:list
 @dataclass
-class Set: name: str; expr: object
+class SetStmt: name:str;expr:object;line:int
 @dataclass
-class Show: expr: object
+class ShowStmt: expr:object;line:int
 @dataclass
-class ExprStmt: expr: object
+class CheckStmt: cond:object;yes:list;no:list;line:int
 @dataclass
-class Block: statements: list
+class RepeatStmt: cond:object;body:list;line:int
 @dataclass
-class Check: condition: object; then: Block; otherwise: Block | None
+class FunctionStmt: name:str;params:list;body:list;line:int
 @dataclass
-class Repeat: condition: object; body: Block
+class GiveStmt: expr:object;line:int
 @dataclass
-class Function: name: str; params: list; body: Block
+class FinishStmt: line:int
 @dataclass
-class Give: expr: object | None
+class ExprStmt: expr:object;line:int
 @dataclass
-class Finish: pass
+class Literal: value:object
 @dataclass
-class Literal: value: object
+class Name: value:str
 @dataclass
-class Name: value: str
+class Unary: op:str;expr:object
 @dataclass
-class Unary: op: str; expr: object
+class Binary: left:object;op:str;right:object
 @dataclass
-class Binary: left: object; op: str; right: object
+class Call: name:str;args:list
 @dataclass
-class Call: callee: object; args: list
-
-
+class Index: obj:object;key:object
 class Parser:
-    def __init__(self, source):
-        self.t = tokenize(source)
-        self.i = 0
-
-    def cur(self):
-        return self.t[self.i]
-
-    def take(self, value=None):
-        token = self.cur()
-        if value is not None and token.value != value:
-            raise SyntaxError(f"Expected {value!r}, got {token.value!r} at {token.line}:{token.column}")
-        self.i += 1
-        return token
-
-    def skip_newlines(self):
-        while self.cur().kind == "NEWLINE" or self.cur().value == ";":
-            self.i += 1
-
-    def require_line_end(self):
-        if self.cur().kind == "NEWLINE":
-            self.skip_newlines()
-        elif self.cur().value == ";":
-            self.skip_newlines()
-        elif self.cur().kind != "EOF":
-            raise SyntaxError(f"Expected end of line, got {self.cur().value!r}")
-
-    def program(self):
-        statements = []
-        self.skip_newlines()
-        while self.cur().kind != "EOF":
-            if self.cur().value == "finish":
-                self.take("finish")
-                self.require_line_end()
-                self.skip_newlines()
-                if self.cur().kind != "EOF":
-                    raise SyntaxError("Nothing is allowed after finish")
-                statements.append(Finish())
-                break
-            statements.append(self.statement())
-            self.skip_newlines()
-        return Program(statements)
-
-    def statement(self):
-        value = self.cur().value
-        if value == "set":
-            self.take("set")
-            name = self.take().value
-            self.take("=")
-            expr = self.expr()
-            self.require_line_end()
-            return Set(name, expr)
-
-        if value == "show":
-            self.take("show")
-            expr = self.expr()
-            self.require_line_end()
-            return Show(expr)
-
-        if value == "check":
-            self.take("check")
-            condition = self.expr()
-            self.take("=>")
-            self.require_line_end()
-            then = self.block_until("otherwise", "end")
-            otherwise = None
-            if self.cur().value == "otherwise":
-                self.take("otherwise")
-                self.take("=>")
-                self.require_line_end()
-                otherwise = self.block_until("end")
-            self.take("end")
-            self.require_line_end()
-            return Check(condition, then, otherwise)
-
-        if value == "repeat":
-            self.take("repeat")
-            condition = self.expr()
-            self.take("=>")
-            self.require_line_end()
-            body = self.block_until("end")
-            self.take("end")
-            self.require_line_end()
-            return Repeat(condition, body)
-
-        if value == "define":
-            self.take("define")
-            name = self.take().value
-            self.take("(")
-            params = []
-            if self.cur().value != ")":
-                while True:
-                    params.append(self.take().value)
-                    if self.cur().value != ",":
-                        break
-                    self.take(",")
-            self.take(")")
-            self.take("=>")
-            self.require_line_end()
-            body = self.block_until("end")
-            self.take("end")
-            self.require_line_end()
-            return Function(name, params, body)
-
-        if value == "give":
-            self.take("give")
-            expr = None if self.cur().kind in ("NEWLINE", "EOF") or self.cur().value == ";" else self.expr()
-            self.require_line_end()
-            return Give(expr)
-
-        if value == "end":
-            raise SyntaxError("Unexpected 'end'")
-
-        expr = self.expr()
-        self.require_line_end()
-        return ExprStmt(expr)
-
-    def block_until(self, *terminators):
-        statements = []
-        self.skip_newlines()
-        while self.cur().kind != "EOF" and self.cur().value not in terminators:
-            statements.append(self.statement())
-            self.skip_newlines()
-        if self.cur().kind == "EOF":
-            raise SyntaxError(f"Expected one of {terminators}, got end of file")
-        return Block(statements)
-
-    def expr(self): return self.equality()
-
-    def equality(self):
-        node = self.compare()
-        while self.cur().value in ("==", "!="):
-            op = self.take().value
-            node = Binary(node, op, self.compare())
-        return node
-
-    def compare(self):
-        node = self.term()
-        while self.cur().value in ("<", "<=", ">", ">="):
-            op = self.take().value
-            node = Binary(node, op, self.term())
-        return node
-
-    def term(self):
-        node = self.factor()
-        while self.cur().value in ("+", "-"):
-            op = self.take().value
-            node = Binary(node, op, self.factor())
-        return node
-
-    def factor(self):
-        node = self.unary()
-        while self.cur().value in ("*", "/", "%"):
-            op = self.take().value
-            node = Binary(node, op, self.unary())
-        return node
-
-    def unary(self):
-        if self.cur().value in ("+", "-"):
-            return Unary(self.take().value, self.unary())
-        return self.call()
-
-    def call(self):
-        node = self.primary()
-        while self.cur().value == "(":
-            self.take("(")
-            args = []
-            if self.cur().value != ")":
-                while True:
-                    args.append(self.expr())
-                    if self.cur().value != ",":
-                        break
-                    self.take(",")
-            self.take(")")
-            node = Call(node, args)
-        return node
-
-    def primary(self):
-        token = self.take()
-        if token.kind == "NUMBER":
-            return Literal(float(token.value) if "." in token.value else int(token.value))
-        if token.kind == "STRING":
-            return Literal(token.value)
-        if token.value == "true":
-            return Literal(True)
-        if token.value == "false":
-            return Literal(False)
-        if token.kind == "IDENT":
-            return Name(token.value)
-        if token.value == "(":
-            expr = self.expr()
-            self.take(")")
-            return expr
-        raise SyntaxError(f"Unexpected token {token.value!r} at {token.line}:{token.column}")
-
-
-def parse(source):
-    return Parser(source).program()
+ def __init__(self,s):self.t=lex(s);self.i=0
+ def val(self):return self.t[self.i].value
+ def take(self,v=None):
+  t=self.t[self.i]
+  if v is not None and t.value!=v:raise SyntaxError(f'Line {t.line}: expected {v!r}, got {t.value!r}')
+  self.i+=1;return t
+ def program(self):
+  b=[]
+  while self.t[self.i].kind!='EOF':b.append(self.statement())
+  return Program(b)
+ def statement(self):
+  t=self.t[self.i];v=t.value
+  if v=='set':self.take();n=self.take().value;self.take('=');return SetStmt(n,self.expr(),t.line)
+  if v=='show':self.take();return ShowStmt(self.expr(),t.line)
+  if v=='check':
+   self.take();c=self.expr();self.take('=>');yes=self.block({'otherwise','end'});no=[]
+   if self.val()=='otherwise':self.take();self.take('=>');no=self.block({'end'})
+   self.take('end');return CheckStmt(c,yes,no,t.line)
+  if v=='repeat':
+   self.take();c=self.expr();self.take('=>');b=self.block({'end'});self.take('end');return RepeatStmt(c,b,t.line)
+  if v=='define':
+   self.take();n=self.take().value;self.take('(');p=[]
+   if self.val()!=')':
+    while True:
+     p.append(self.take().value)
+     if self.val()!=',':break
+     self.take(',')
+   self.take(')');self.take('=>');b=self.block({'end'});self.take('end');return FunctionStmt(n,p,b,t.line)
+  if v=='give':self.take();return GiveStmt(self.expr(),t.line)
+  if v=='finish':self.take();return FinishStmt(t.line)
+  if v in ('end','otherwise'):raise SyntaxError(f'Line {t.line}: unexpected {v!r}')
+  return ExprStmt(self.expr(),t.line)
+ def block(self,stops):
+  b=[]
+  while self.t[self.i].kind!='EOF' and self.val() not in stops:b.append(self.statement())
+  return b
+ def expr(self):return self.logic_or()
+ def logic_or(self):
+  x=self.logic_and()
+  while self.val()=='or':self.take();x=Binary(x,'or',self.logic_and())
+  return x
+ def logic_and(self):
+  x=self.compare()
+  while self.val()=='and':self.take();x=Binary(x,'and',self.compare())
+  return x
+ def compare(self):
+  x=self.add()
+  while self.val() in ('==','!=','<','>','<=','>='):
+   o=self.take().value;x=Binary(x,o,self.add())
+  return x
+ def add(self):
+  x=self.mul()
+  while self.val() in ('+','-'):
+   o=self.take().value;x=Binary(x,o,self.mul())
+  return x
+ def mul(self):
+  x=self.unary()
+  while self.val() in ('*','/','%'):
+   o=self.take().value;x=Binary(x,o,self.unary())
+  return x
+ def unary(self):
+  if self.val() in ('-','not'):
+   o=self.take().value;return Unary(o,self.unary())
+  return self.primary()
+ def primary(self):
+  t=self.t[self.i]
+  if t.kind in ('NUMBER','STRING'):self.i+=1;x=Literal(t.value)
+  elif t.value in ('true','false'):self.i+=1;x=Literal(t.value=='true')
+  elif t.kind=='IDENT':
+   self.i+=1
+   if self.val()=='(':
+    self.take('(');a=[]
+    if self.val()!=')':
+     while True:
+      a.append(self.expr())
+      if self.val()!=',':break
+      self.take(',')
+    self.take(')');x=Call(t.value,a)
+   else:x=Name(t.value)
+  elif t.value=='[':
+   self.take();a=[]
+   if self.val()!=']':
+    while True:
+     a.append(self.expr())
+     if self.val()!=',':break
+     self.take(',')
+   self.take(']');x=Literal(a)
+  elif t.value=='(':
+   self.take();x=self.expr();self.take(')')
+  else:raise SyntaxError(f'Line {t.line}: expected expression')
+  while self.val()=='[':
+   self.take();k=self.expr();self.take(']');x=Index(x,k)
+  return x
+def parse(s):return Parser(s).program()
